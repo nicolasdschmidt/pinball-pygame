@@ -1,9 +1,8 @@
-import pygame, sys
+import pygame, pymunk, sys
 from pygame.locals import *
-from pygame import gfxdraw
 
-from vector import Vector
-from line import Line
+from ball import Ball
+from obstacle import Obstacle
 
 # inicializar biblioteca PyGame
 pygame.init()
@@ -16,20 +15,23 @@ clock = pygame.time.Clock()
 WIDTH = 400
 HEIGHT = 600
 
-p1 = Vector(10, 20)
-p2 = Vector(90, 70)
-line = Line(p1, p2)
+# espaço físico pymunk
+space = pymunk.Space()
+space.gravity = (0, 500)
+
+ball = Ball(space, (WIDTH/2, 0))
+
+# limites físicos da tela
+boundaries = []
+boundaries.append(Obstacle(space, (WIDTH/2, 0), (WIDTH, 10)))       # norte
+boundaries.append(Obstacle(space, (WIDTH/2, HEIGHT), (WIDTH, 10)))  # sul
+boundaries.append(Obstacle(space, (WIDTH, HEIGHT/2), (10, HEIGHT))) # leste
+boundaries.append(Obstacle(space, (0, HEIGHT/2), (10, HEIGHT)))     # oeste
 
 # instanciar janela
 SCREEN = pygame.display.set_mode((WIDTH,HEIGHT))
 SCREEN.fill((0,0,0))
 pygame.display.set_caption("Pinball")
-
-# função para desenhar um círculo com anti-aliasing, uma técnica para reduzir
-# aquelas bordas "pixeladas" de figuras arredondads adicionando mais detalhe
-def draw_circle(surface, color, x, y, radius):
-    gfxdraw.aacircle(surface, x, y, radius, color)
-    gfxdraw.filled_circle(surface, x, y, radius, color)
 
 # loop principal
 while True:
@@ -41,8 +43,14 @@ while True:
 
     # preencher a tela com preto (para esconder o frame anterior)
     SCREEN.fill((0,0,0))
-    
-    line.draw(SCREEN)
+
+    ball.draw(SCREEN)
+
+    for boundary in boundaries:
+        boundary.draw(SCREEN)
+
+    # atualizar espaço físico
+    space.step(1/FPS)
 
     # atualizar tela e avançar o clock
     pygame.display.update()
