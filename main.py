@@ -1,3 +1,4 @@
+from math import tan
 import pygame, pymunk, sys
 from pygame.locals import *
 
