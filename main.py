@@ -28,6 +28,7 @@ font_small = pygame.font.SysFont("monospace", 24, bold=True)
 draw_options = pygame_util.DrawOptions(SCREEN)
 
 score = 0
+attempts = 4
 
 CORNER_OFFSET = 20
 WALL_SIZE = 10
@@ -51,11 +52,14 @@ flipper_l = Flipper(space, (LAUNCHER_OFFSET/3, HEIGHT-50), (70,10), -1)
 flipper_r = Flipper(space, (LAUNCHER_OFFSET/3*2, HEIGHT-50), (70,10), 1)
 
 bumpers = []
-bumpers.append(Bumper(space, (LAUNCHER_OFFSET/5, 60)))
-bumpers.append(Bumper(space, (LAUNCHER_OFFSET/4*3, 120)))
-bumpers.append(Bumper(space, (LAUNCHER_OFFSET/2, 210)))
-bumpers.append(Bumper(space, (LAUNCHER_OFFSET/4, 300)))
-bumpers.append(Bumper(space, (LAUNCHER_OFFSET/4*3, 300)))
+bumpers.append(Bumper(space, (34, 40)))
+bumpers.append(Bumper(space, (129, 155)))
+bumpers.append(Bumper(space, (216, 151)))
+bumpers.append(Bumper(space, (175, 187)))
+bumpers.append(Bumper(space, (121, 303)))
+bumpers.append(Bumper(space, (216, 390)))
+bumpers.append(Bumper(space, (250, 267)))
+bumpers.append(Bumper(space, (350, 60)))
 
 # limites físicos da tela
 boundaries = []
@@ -83,6 +87,21 @@ obstacles.append(Obstacle(space, (LAUNCHER_OFFSET-60+(WIDTH/12-7), HEIGHT-125), 
 obstacles.append(Obstacle(space, (0+60-(WIDTH/12-7), HEIGHT-125), (WIDTH/6, 2), 90))
 obstacles.append(Obstacle(space, (LAUNCHER_OFFSET-60+(WIDTH/12-7), HEIGHT-250), (WIDTH/4, 2), 90))
 obstacles.append(Obstacle(space, (0+60-(WIDTH/12-7), HEIGHT-250), (WIDTH/4, 2), 90))
+
+obstacles.append(Obstacle(space, (333, 46), (WIDTH/6, 5), 10))
+obstacles.append(Obstacle(space, (267, 43), (WIDTH/6, 5), -3))
+obstacles.append(Obstacle(space, (107, 91), (WIDTH/6, 5), -70))
+obstacles.append(Obstacle(space, (129, 91), (WIDTH/6, 5), 70))
+obstacles.append(Obstacle(space, (), (WIDTH/9-2, 5), 0))
+
+obstacles.append(Obstacle(space, (59, 205), (WIDTH/4, 5), 75))
+obstacles.append(Obstacle(space, (50, 112), (WIDTH/4, 5), -85))
+obstacles.append(Obstacle(space, (311, 217), (WIDTH/8, 5), -70))
+obstacles.append(Obstacle(space, (322, 168), (WIDTH/8, 5), -85))
+obstacles.append(Obstacle(space, (317, 120), (WIDTH/8, 5), 70))
+obstacles.append(Obstacle(space, (289, 87), (WIDTH/8, 5), 30))
+obstacles.append(Obstacle(space, (262, 75), (WIDTH/12, 5), 10))
+
 #boundaries.append(Obstacle(space, (WIDTH/2+FLIPPER_OFFSET, HEIGHT/2+100), (5, HEIGHT/2)))
 
 def bumper_collision(space, arbiter, d1):
@@ -126,8 +145,11 @@ while True:
         obstacle.draw(SCREEN)
 
     scoreText = font_small.render(str(score).zfill(5), 1, (255,255,255))
+    attemptsText = font_small.render(str(attempts) + " Attempts", 1, (0, 255, 255))
     text_rect = scoreText.get_rect(center=(WIDTH/2, 40))
+    attempts_rect = attemptsText.get_rect(center=(WIDTH-WIDTH/5, 40))
     SCREEN.blit(scoreText, text_rect)
+    SCREEN.blit(attemptsText, attempts_rect)
 
     #space.debug_draw(draw_options)
 
