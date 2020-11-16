@@ -17,7 +17,7 @@ class Flipper:
         s = pymunk.DampedRotarySpring(self.body, self.joint_body, 0.15, 20000000,900000)
         space.add(j, s)
         self.shape.group = 1
-        self.shape.elasticity = 0.4
+        self.shape.elasticity = 1.2
 
     def move(self):
         self.body.apply_impulse_at_local_point(Vec2d.unit() * -30000, (self.invert * -50,20))
