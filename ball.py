@@ -7,6 +7,8 @@ class Ball:
         self.body.position = position
         self.radius = 10
         self.shape = pymunk.Circle(self.body, self.radius)
+        self.shape.elasticity = 0.6
+        self.shape.collision_type = 1
         space.add(self.body,self.shape)
         self.body.apply_impulse_at_local_point((0,-initialImpulse), (0,0))
 

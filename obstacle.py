@@ -9,6 +9,7 @@ class Obstacle:
         self.body.position = position
         self.body.angle = math.radians(angle)
         self.shape = pymunk.Poly.create_box(self.body, size=(self.width, self.height))
+        self.shape.elasticity = 0.1
         space.add(self.body,self.shape)
 
 

@@ -5,6 +5,7 @@ from pygame.locals import *
 from ball import Ball
 from obstacle import Obstacle
 from flipper import Flipper
+from bumper import Bumper
 
 # inicializar biblioteca PyGame
 pygame.init()
@@ -22,7 +23,11 @@ SCREEN = pygame.display.set_mode((WIDTH,HEIGHT))
 SCREEN.fill((0,0,0))
 pygame.display.set_caption("Pinball")
 
+font_small = pygame.font.SysFont("monospace", 24, bold=True)
+
 draw_options = pygame_util.DrawOptions(SCREEN)
+
+score = 0
 
 CORNER_OFFSET = 20
 WALL_SIZE = 10
@@ -45,6 +50,13 @@ ball = Ball(space, START_POS, random.randint(750, 1200))
 flipper_l = Flipper(space, (LAUNCHER_OFFSET/3, HEIGHT*3/4), (70,10), -1)
 flipper_r = Flipper(space, (LAUNCHER_OFFSET/3*2, HEIGHT*3/4), (70,10), 1)
 
+bumpers = []
+bumpers.append(Bumper(space, (LAUNCHER_OFFSET/4, 120)))
+bumpers.append(Bumper(space, (LAUNCHER_OFFSET/4*3, 120)))
+bumpers.append(Bumper(space, (LAUNCHER_OFFSET/2, 210)))
+bumpers.append(Bumper(space, (LAUNCHER_OFFSET/4, 300)))
+bumpers.append(Bumper(space, (LAUNCHER_OFFSET/4*3, 300)))
+
 # limites físicos da tela
 boundaries = []
 boundaries.append(Obstacle(space, (WIDTH/2, 0), (WIDTH, 10)))       # norte
@@ -55,6 +67,14 @@ boundaries.append(Obstacle(space, (WIDTH-CORNER_OFFSET, CORNER_OFFSET), (WIDTH/2
 boundaries.append(Obstacle(space, (CORNER_OFFSET, CORNER_OFFSET), (WIDTH/2, 10), -45))   # noroeste
 boundaries.append(Obstacle(space, (LAUNCHER_OFFSET, HEIGHT/2+100), (5, HEIGHT)))
 #boundaries.append(Obstacle(space, (WIDTH/2+FLIPPER_OFFSET, HEIGHT/2+100), (5, HEIGHT/2)))
+
+def bumper_collision(space, arbiter, d1):
+    global score
+    score += 55
+    return True
+
+c_handler = space.add_collision_handler(1, 1)
+c_handler.begin = bumper_collision
 
 # loop principal
 while True:
@@ -79,8 +99,15 @@ while True:
     flipper_l.draw(SCREEN)
     flipper_r.draw(SCREEN)
 
+    for bumper in bumpers:
+        bumper.draw(SCREEN)
+
     for boundary in boundaries:
         boundary.draw(SCREEN)
+
+    scoreText = font_small.render(str(score).zfill(5), 1, (255,255,255))
+    text_rect = scoreText.get_rect(center=(WIDTH/2, 40))
+    SCREEN.blit(scoreText, text_rect)
 
     #space.debug_draw(draw_options)
 
