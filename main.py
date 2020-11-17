@@ -28,7 +28,11 @@ font_small = pygame.font.SysFont("monospace", 24, bold=True)
 draw_options = pygame_util.DrawOptions(SCREEN)
 
 score = 0
-attempts = 4
+total_attempts = 5
+attempts = total_attempts
+
+launch_ready = True
+game_over = False
 
 CORNER_OFFSET = 20
 WALL_SIZE = 10
@@ -46,10 +50,10 @@ LAUNCHER_OFFSET = WIDTH - WALL_SIZE/2 - BALL_RADIUS*2 - 10
 space = pymunk.Space()
 space.gravity = (0, 500)
 
-ball = Ball(space, START_POS, random.randint(750, 1200))
+ball = Ball(space, START_POS)
 
-flipper_l = Flipper(space, (LAUNCHER_OFFSET/3, HEIGHT-50), (70,10), -1)
-flipper_r = Flipper(space, (LAUNCHER_OFFSET/3*2, HEIGHT-50), (70,10), 1)
+flipper_l = Flipper(space, (LAUNCHER_OFFSET/3, HEIGHT-40), (70,10), -1)
+flipper_r = Flipper(space, (LAUNCHER_OFFSET/3*2, HEIGHT-40), (70,10), 1)
 
 bumpers = []
 bumpers.append(Bumper(space, (34, 40)))
@@ -104,6 +108,12 @@ obstacles.append(Obstacle(space, (262, 75), (WIDTH/12, 5), 10))
 
 #boundaries.append(Obstacle(space, (WIDTH/2+FLIPPER_OFFSET, HEIGHT/2+100), (5, HEIGHT/2)))
 
+def decrease_attempt():
+    global attempts, game_over
+    attempts -= 1
+    if attempts <= 0:
+        game_over = True
+
 def bumper_collision(space, arbiter, d1):
     global score
     score += 55
@@ -125,6 +135,14 @@ while True:
                 flipper_l.move()
             if event.key == pygame.K_j:
                 flipper_r.move()
+            if event.key == pygame.K_SPACE and launch_ready:
+                if not game_over:
+                    launch_ready = False
+                    ball.launch(random.randint(900, 1400))
+                else:
+                    score = 0
+                    attempts = total_attempts
+                    game_over = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(pygame.mouse.get_pos())
 
@@ -145,13 +163,22 @@ while True:
         obstacle.draw(SCREEN)
 
     scoreText = font_small.render(str(score).zfill(5), 1, (255,255,255))
-    attemptsText = font_small.render(str(attempts) + " Attempts", 1, (0, 255, 255))
-    text_rect = scoreText.get_rect(center=(WIDTH/2, 40))
-    attempts_rect = attemptsText.get_rect(center=(WIDTH-WIDTH/5, 40))
-    SCREEN.blit(scoreText, text_rect)
+    if (attempts > 0):
+        attemptsText = font_small.render((attempts) * '#' + (total_attempts - attempts) * '-', 1, (0, 255, 255))
+    else:
+        attemptsText = font_small.render('game over', 1, (0, 255, 255))
+    score_rect = scoreText.get_rect(center=(int(WIDTH/2), 40))
+    attempts_rect = attemptsText.get_rect(center=(int(WIDTH/2), 60))
+    #attempts_rect = attemptsText.get_rect(center=(int(WIDTH-WIDTH/5), 40))
+    SCREEN.blit(scoreText, score_rect)
     SCREEN.blit(attemptsText, attempts_rect)
 
-    #space.debug_draw(draw_options)
+    launch_ready = START_POS[0] - ball.radius < ball.body.position.x and ball.body.position.x < START_POS[0] + ball.radius and START_POS[1] - ball.radius/2 < ball.body.position.y and ball.body.position.y < START_POS[1] + ball.radius/2
+
+    if (ball.body.position.y > HEIGHT or ball.body.position.y < 0):
+        ball.recycle(START_POS)
+        decrease_attempt()
+        launch_ready = True
 
     # atualizar espaço físico
     space.step(1/FPS)
