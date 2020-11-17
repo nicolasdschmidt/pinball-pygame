@@ -242,7 +242,7 @@ while True:
             bumper_playing -= 1
 
         # atualizar espaço físico
-        space.step(1/(FPS*1.1))
+        space.step(1/(FPS))
     else:
         for event in pygame.event.get():
             # se o usuário clicar para sair, obedecer
