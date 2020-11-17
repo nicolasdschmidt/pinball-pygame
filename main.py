@@ -63,6 +63,17 @@ FLIPPER_MAX = 45
 START_POS = (int(WIDTH - WALL_SIZE/2 - BALL_RADIUS), int(HEIGHT - WALL_SIZE/2 - BALL_RADIUS))
 LAUNCHER_OFFSET = WIDTH - WALL_SIZE/2 - BALL_RADIUS*2 - 10
 
+#sons
+start_sound = pygame.mixer.Sound('audio/start.wav')
+gameover_sound = pygame.mixer.Sound('audio/gameover.wav')
+bumper_sound = pygame.mixer.Sound('audio/bumper.wav')
+collision_sound = pygame.mixer.Sound('audio/collision.wav')
+ball_sound = pygame.mixer.Sound('audio/ball.wav')
+launch_sound = pygame.mixer.Sound('audio/launch.wav')
+
+bumper_playing = 0
+launch_playing = 0
+
 # espaço físico pymunk
 space = pymunk.Space()
 space.gravity = (0, 500)
@@ -130,14 +141,20 @@ def decrease_attempt():
     attempts -= 1
     if attempts <= 0:
         game_over = True
+        pygame.mixer.Sound.play(gameover_sound)
 
 def bumper_collision(space, arbiter, d1):
-    global score
+    global score, bumper_playing
+    if (bumper_playing <= 0):
+        pygame.mixer.Sound.play(bumper_sound)
+        bumper_playing = 10
     score += 55
     return True
 
-c_handler = space.add_collision_handler(1, 1)
-c_handler.begin = bumper_collision
+c_handler = space.add_collision_handler(1, 2)
+c_handler.pre_solve = bumper_collision
+
+pygame.mixer.Sound.play(start_sound)
 
 # loop principal
 while True:
@@ -155,19 +172,28 @@ while True:
                     CUR_TEXT = INACTIVE_TEXT
                     CUR_SCORE = INACTIVE_SCORE
                 if event.key == pygame.K_f:
+                    pygame.mixer.Sound.play(collision_sound)
                     flipper_l.move()
                 if event.key == pygame.K_j:
+                    pygame.mixer.Sound.play(collision_sound)
                     flipper_r.move()
                 if event.key == pygame.K_SPACE and launch_ready:
                     if not game_over:
+                        launch_playing = 10
                         launch_ready = False
                         ball.launch(random.randint(900, 1400))
                     else:
                         score = 0
                         attempts = total_attempts
                         game_over = False
+                        pygame.mixer.Sound.play(ball_sound)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(pygame.mouse.get_pos())
+
+        if launch_playing:
+            if launch_playing % 5 == 0:
+                pygame.mixer.Sound.play(launch_sound)
+            launch_playing -= 1
 
         # preencher a tela com preto (para esconder o frame anterior)
         SCREEN.fill((0,0,0))
@@ -183,7 +209,10 @@ while True:
             boundary.draw(SCREEN, CUR_COLOR)
 
         for obstacle in obstacles:
-            obstacle.draw(SCREEN, CUR_COLOR)
+            try:
+                obstacle.draw(SCREEN, CUR_COLOR)
+            except:
+                pass
 
         scoreText = font_big.render(str(score).zfill(5), 1, CUR_SCORE)
         if (attempts > 0):
@@ -206,9 +235,14 @@ while True:
             ball.recycle(START_POS)
             decrease_attempt()
             launch_ready = True
+            if not game_over:
+                pygame.mixer.Sound.play(ball_sound)
+
+        if (bumper_playing > 0):
+            bumper_playing -= 1
 
         # atualizar espaço físico
-        space.step(1/FPS)
+        space.step(1/(FPS*1.1))
     else:
         for event in pygame.event.get():
             # se o usuário clicar para sair, obedecer

@@ -8,7 +8,7 @@ class Bumper:
         self.body.position = position[0], position[1]
         self.shape = pymunk.Circle(self.body, 10)
         self.shape.elasticity = 2
-        self.shape.collision_type = 1
+        self.shape.collision_type = 2
         space.add(self.body, self.shape)
 
     def draw(self, screen, color):
