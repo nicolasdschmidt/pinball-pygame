@@ -20,6 +20,6 @@ class Ball:
         self.body.position = position
         self.body.velocity = (0, 0)
 
-    def draw(self, screen):
-        gfxdraw.aacircle(screen, int(self.body.position.x), int(self.body.position.y), self.radius, (0,255,0))
-        gfxdraw.filled_circle(screen, int(self.body.position.x), int(self.body.position.y), self.radius, (0,255,0))
+    def draw(self, screen, color):
+        gfxdraw.aacircle(screen, int(self.body.position.x), int(self.body.position.y), self.radius, (color))
+        gfxdraw.filled_circle(screen, int(self.body.position.x), int(self.body.position.y), self.radius, (color))

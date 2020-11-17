@@ -25,7 +25,7 @@ class Flipper:
         self.forceDelay = 20
         self.body.apply_impulse_at_local_point(Vec2d.unit() * -30000, (self.invert * -50,20))
 
-    def draw(self, screen):
+    def draw(self, screen, color):
         if (self.forceDelay <= 0):
             self.shape.elasticity = 0
         else:
@@ -34,6 +34,6 @@ class Flipper:
         for v in self.shape.get_vertices():
             x,y = v.rotated(self.shape.body.angle) + self.shape.body.position
             vertices.append((x,y))
-        gfxdraw.aapolygon(screen, vertices, (0,255,0))
-        gfxdraw.filled_polygon(screen, vertices, (0,255,0))
+        gfxdraw.aapolygon(screen, vertices, (color))
+        gfxdraw.filled_polygon(screen, vertices, (color))
         #gfxdraw.filled_circle(screen, int(self.invert * -50 + self.body.position.x), int(20 + self.body.position.y), 5, (255,255,255))

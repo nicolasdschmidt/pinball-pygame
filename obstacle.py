@@ -13,10 +13,10 @@ class Obstacle:
         space.add(self.body,self.shape)
 
 
-    def draw(self, screen):
+    def draw(self, screen, color):
         vertices = []
         for v in self.shape.get_vertices():
             x,y = v.rotated(self.shape.body.angle) + self.shape.body.position
             vertices.append((x,y))
-        gfxdraw.aapolygon(screen, vertices, (0,255,0))
-        gfxdraw.filled_polygon(screen, vertices, (0,255,0))
+        gfxdraw.aapolygon(screen, vertices, (color))
+        gfxdraw.filled_polygon(screen, vertices, (color))

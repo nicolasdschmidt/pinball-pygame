@@ -11,5 +11,5 @@ class Bumper:
         self.shape.collision_type = 1
         space.add(self.body, self.shape)
 
-    def draw(self, screen):
-        gfxdraw.filled_circle(screen, int(self.body.position.x), int(self.body.position.y), 10, (0,255,0))
+    def draw(self, screen, color):
+        gfxdraw.filled_circle(screen, int(self.body.position.x), int(self.body.position.y), 10, (color))

@@ -23,7 +23,8 @@ SCREEN = pygame.display.set_mode((WIDTH,HEIGHT))
 SCREEN.fill((0,0,0))
 pygame.display.set_caption("Pinball")
 
-font_small = pygame.font.SysFont("monospace", 24, bold=True)
+font_big = pygame.font.SysFont("monospace", 24, bold=True)
+font_small = pygame.font.SysFont("monospace", 16, bold=True)
 
 draw_options = pygame_util.DrawOptions(SCREEN)
 
@@ -31,8 +32,24 @@ score = 0
 total_attempts = 5
 attempts = total_attempts
 
+game_running = True
+pause_rendered = False
+
 launch_ready = True
 game_over = False
+
+ACTIVE_COLOR = (0,255,0)
+INACTIVE_COLOR = (0,100,0)
+
+ACTIVE_TEXT = (0,255,255)
+INACTIVE_TEXT = (0,100,100)
+
+ACTIVE_SCORE = (255,255,255)
+INACTIVE_SCORE = (100,100,100)
+
+CUR_COLOR = ACTIVE_COLOR
+CUR_TEXT = ACTIVE_TEXT
+CUR_SCORE = ACTIVE_SCORE
 
 CORNER_OFFSET = 20
 WALL_SIZE = 10
@@ -124,64 +141,119 @@ c_handler.begin = bumper_collision
 
 # loop principal
 while True:
-    for event in pygame.event.get():
-        # se o usuário clicar para sair, obedecer
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        # input do teclado
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_f:
-                flipper_l.move()
-            if event.key == pygame.K_j:
-                flipper_r.move()
-            if event.key == pygame.K_SPACE and launch_ready:
-                if not game_over:
-                    launch_ready = False
-                    ball.launch(random.randint(900, 1400))
-                else:
-                    score = 0
-                    attempts = total_attempts
-                    game_over = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            print(pygame.mouse.get_pos())
+    if game_running:
+        for event in pygame.event.get():
+            # se o usuário clicar para sair, obedecer
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            # input do teclado
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    game_running = False
+                    CUR_COLOR = INACTIVE_COLOR
+                    CUR_TEXT = INACTIVE_TEXT
+                    CUR_SCORE = INACTIVE_SCORE
+                if event.key == pygame.K_f:
+                    flipper_l.move()
+                if event.key == pygame.K_j:
+                    flipper_r.move()
+                if event.key == pygame.K_SPACE and launch_ready:
+                    if not game_over:
+                        launch_ready = False
+                        ball.launch(random.randint(900, 1400))
+                    else:
+                        score = 0
+                        attempts = total_attempts
+                        game_over = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                print(pygame.mouse.get_pos())
 
-    # preencher a tela com preto (para esconder o frame anterior)
-    SCREEN.fill((0,0,0))
+        # preencher a tela com preto (para esconder o frame anterior)
+        SCREEN.fill((0,0,0))
 
-    ball.draw(SCREEN)
-    flipper_l.draw(SCREEN)
-    flipper_r.draw(SCREEN)
+        ball.draw(SCREEN, CUR_COLOR)
+        flipper_l.draw(SCREEN, CUR_COLOR)
+        flipper_r.draw(SCREEN, CUR_COLOR)
 
-    for bumper in bumpers:
-        bumper.draw(SCREEN)
+        for bumper in bumpers:
+            bumper.draw(SCREEN, CUR_COLOR)
 
-    for boundary in boundaries:
-        boundary.draw(SCREEN)
+        for boundary in boundaries:
+            boundary.draw(SCREEN, CUR_COLOR)
 
-    for obstacle in obstacles:
-        obstacle.draw(SCREEN)
+        for obstacle in obstacles:
+            obstacle.draw(SCREEN, CUR_COLOR)
 
-    scoreText = font_small.render(str(score).zfill(5), 1, (255,255,255))
-    if (attempts > 0):
-        attemptsText = font_small.render((attempts) * '#' + (total_attempts - attempts) * '-', 1, (0, 255, 255))
+        scoreText = font_big.render(str(score).zfill(5), 1, CUR_SCORE)
+        if (attempts > 0):
+            attemptsText = font_big.render((attempts) * '#' + (total_attempts - attempts) * '-', 1, CUR_TEXT)
+        else:
+            attemptsText = font_big.render('game over', 1, CUR_TEXT)
+        score_rect = scoreText.get_rect(center=(int(WIDTH/2), 40))
+        attempts_rect = attemptsText.get_rect(center=(int(WIDTH/2), 60))
+
+        pauseText = font_small.render('<P> para pausa/sobre/ajuda', 1, CUR_SCORE)
+        pause_rect = pauseText.get_rect(center=(int(WIDTH/2), HEIGHT - 10))
+
+        SCREEN.blit(scoreText, score_rect)
+        SCREEN.blit(attemptsText, attempts_rect)
+        SCREEN.blit(pauseText, pause_rect)
+
+        launch_ready = START_POS[0] - ball.radius < ball.body.position.x and ball.body.position.x < START_POS[0] + ball.radius and START_POS[1] - ball.radius/2 < ball.body.position.y and ball.body.position.y < START_POS[1] + ball.radius/2
+
+        if (ball.body.position.y > HEIGHT or ball.body.position.y < 0):
+            ball.recycle(START_POS)
+            decrease_attempt()
+            launch_ready = True
+
+        # atualizar espaço físico
+        space.step(1/FPS)
     else:
-        attemptsText = font_small.render('game over', 1, (0, 255, 255))
-    score_rect = scoreText.get_rect(center=(int(WIDTH/2), 40))
-    attempts_rect = attemptsText.get_rect(center=(int(WIDTH/2), 60))
-    #attempts_rect = attemptsText.get_rect(center=(int(WIDTH-WIDTH/5), 40))
-    SCREEN.blit(scoreText, score_rect)
-    SCREEN.blit(attemptsText, attempts_rect)
+        for event in pygame.event.get():
+            # se o usuário clicar para sair, obedecer
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            # input do teclado
+            if event.type == pygame.KEYDOWN:
+                CUR_COLOR = ACTIVE_COLOR
+                CUR_TEXT = ACTIVE_TEXT
+                CUR_SCORE = ACTIVE_SCORE
+                game_running = True
+                pause_rendered = False
 
-    launch_ready = START_POS[0] - ball.radius < ball.body.position.x and ball.body.position.x < START_POS[0] + ball.radius and START_POS[1] - ball.radius/2 < ball.body.position.y and ball.body.position.y < START_POS[1] + ball.radius/2
+        if not pause_rendered and not game_running:
+            pause_rendered = True
 
-    if (ball.body.position.y > HEIGHT or ball.body.position.y < 0):
-        ball.recycle(START_POS)
-        decrease_attempt()
-        launch_ready = True
+            pauseText = font_big.render('PAUSED', 1, (255,255,255))
+            pause_rect = pauseText.get_rect(center=(int(WIDTH/2), 120))
 
-    # atualizar espaço físico
-    space.step(1/FPS)
+            keyText = font_small.render('pressione qualquer tecla para retornar', 1, (255,255,255))
+            key_rect = keyText.get_rect(center=(int(WIDTH/2), 140))
+
+            spaceText = font_small.render('lançar bola: espaço', 1, (255,255,255))
+            space_rect = spaceText.get_rect(center=(int(WIDTH/2), 220))
+
+            flipperText = font_small.render('flippers: F e J', 1, (255,255,255))
+            flipper_rect = flipperText.get_rect(center=(int(WIDTH/2), 240))
+
+            aboutText = font_small.render('Pinball por:', 1, (255,255,255))
+            about_rect = aboutText.get_rect(center=(int(WIDTH/2), 340))
+
+            enzoText = font_small.render('Enzo Spinella (19168)', 1, (255,255,255))
+            enzo_rect = enzoText.get_rect(center=(int(WIDTH/2), 380))
+
+            nicolasText = font_small.render('Nícolas Schmidt (19191)', 1, (255,255,255))
+            nicolas_rect = nicolasText.get_rect(center=(int(WIDTH/2), 420))
+
+            SCREEN.blit(pauseText, pause_rect)
+            SCREEN.blit(keyText, key_rect)
+            SCREEN.blit(spaceText, space_rect)
+            SCREEN.blit(flipperText, flipper_rect)
+            SCREEN.blit(aboutText, about_rect)
+            SCREEN.blit(enzoText, enzo_rect)
+            SCREEN.blit(nicolasText, nicolas_rect)
 
     # atualizar tela e avançar o clock
     pygame.display.update()
